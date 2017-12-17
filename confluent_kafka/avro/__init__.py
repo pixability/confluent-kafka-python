@@ -11,6 +11,7 @@ from confluent_kafka.avro.serializer import (SerializerError,  # noqa
                                              KeySerializerError,
                                              ValueSerializerError)
 from confluent_kafka.avro.serializer.message_serializer import MessageSerializer
+from confluent_kafka.avro.serializer.specific_record_message_deserializer import SpecificRecordMessageDeserializer
 
 
 class AvroProducer(Producer):
@@ -94,6 +95,44 @@ class AvroConsumer(Consumer):
 
         super(AvroConsumer, self).__init__(config)
         self._serializer = MessageSerializer(schema_registry)
+
+    def poll(self, timeout=None):
+        """
+        This is an overriden method from confluent_kafka.Consumer class. This handles message
+        deserialization using avro schema
+
+        @:param timeout
+        @:return message object with deserialized key and value as dict objects
+        """
+        if timeout is None:
+            timeout = -1
+        message = super(AvroConsumer, self).poll(timeout)
+        if message is None:
+            return None
+        if not message.value() and not message.key():
+            return message
+        if not message.error():
+            if message.value() is not None:
+                decoded_value = self._serializer.decode_message(message.value())
+                message.set_value(decoded_value)
+            if message.key() is not None:
+                decoded_key = self._serializer.decode_message(message.key())
+                message.set_key(decoded_key)
+        return message
+
+
+class SpecificRecordAvroConsumer(Consumer):
+    def __init__(self, config, value_schema, key_schema=None, schema_registry=None):
+        schema_registry_url = config.pop("schema.registry.url", None)
+        if schema_registry is None:
+            if schema_registry_url is None:
+                raise ValueError("Missing parameter: schema.registry.url")
+            schema_registry = CachedSchemaRegistryClient(url=schema_registry_url)
+        elif schema_registry_url is not None:
+            raise ValueError("Cannot pass schema_registry along with schema.registry.url config")
+
+        super(SpecificRecordAvroConsumer, self).__init__(config)
+        self._serializer = SpecificRecordMessageDeserializer(schema_registry, value_schema, key_schema)
 
     def poll(self, timeout=None):
         """

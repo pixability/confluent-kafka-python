@@ -19,7 +19,7 @@
 #
 # derived from https://github.com/verisign/python-confluent-schemaregistry.git
 #
-import io
+
 import logging
 import struct
 import sys
@@ -31,11 +31,11 @@ import avro.io
 from confluent_kafka.avro import ClientError
 from confluent_kafka.avro.serializer import (SerializerError,
                                              KeySerializerError,
-                                             ValueSerializerError)
+                                             ValueSerializerError,
+                                             MAGIC_BYTE,
+                                             ContextStringIO)
 
 log = logging.getLogger(__name__)
-
-MAGIC_BYTE = 0
 
 HAS_FAST = False
 try:
@@ -44,19 +44,6 @@ try:
     HAS_FAST = True
 except ImportError:
     pass
-
-
-class ContextStringIO(io.BytesIO):
-    """
-    Wrapper to allow use of StringIO via 'with' constructs.
-    """
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-        return False
 
 
 class MessageSerializer(object):

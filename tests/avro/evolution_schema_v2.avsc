@@ -1,0 +1,28 @@
+[{
+    "name": "evolution",
+    "type": "record",
+    "doc": "evolutionary schema for tests: version 1",
+    "namespace": "python.test.evolution",
+    "fields": [
+        {
+            "name": "age",
+            "doc": "age",
+            "type": "int"
+        },
+        {
+            "name": "name",
+            "doc": "a name",
+            "type": "string"
+        },
+        {
+            "name": "gender",
+            "doc": "a persons gender",
+            "type": {
+                "type": "enum",
+                "name": "Gender",
+                "symbols": ["NONE", "FEMALE", "MALE", "M2F", "F2M", "FLUID", "TWO_SPIRIT"]
+            },
+            "default": "NONE"
+        }
+    ]
+}]

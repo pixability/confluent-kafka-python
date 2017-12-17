@@ -19,3 +19,4 @@ tmp-build
 wheelhouse
 dl-*
 *.whl
+.idea/

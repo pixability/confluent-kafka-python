@@ -15,6 +15,10 @@
 # limitations under the License.
 #
 
+import io
+
+MAGIC_BYTE = 0
+
 
 class SerializerError(Exception):
     """Generic error from serializer package"""
@@ -38,3 +42,16 @@ class KeySerializerError(SerializerError):
 
 class ValueSerializerError(SerializerError):
     pass
+
+
+class ContextStringIO(io.BytesIO):
+    """
+    Wrapper to allow use of StringIO via 'with' constructs.
+    """
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+        return False
